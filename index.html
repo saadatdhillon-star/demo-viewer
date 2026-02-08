@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Support</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { margin: 0; padding: 0; background-color: #fff; }
+    </style>
+</head>
+<body>
+
+    <script type="text/javascript">
+        (function(d, t) {
+            var v = d.createElement(t), s = d.getElementsByTagName(t)[0];
+            v.onload = function() {
+                
+                // 1. GET PROJECT ID
+                const urlParams = new URLSearchParams(window.location.search);
+                const projectId = urlParams.get('id');
+
+                if (!projectId) {
+                    document.body.innerHTML = "<h2>No ID Provided</h2>";
+                    return;
+                }
+
+                // 2. LOAD VOICEFLOW
+                window.voiceflow.chat.load({
+                    verify: { projectID: projectId },
+                    url: 'https://general-runtime.voiceflow.com',
+                    versionID: 'production', 
+                    launch: {
+                        event: { type: "launch", payload: {} }
+                    }
+                }).then(() => {
+                    
+                    // 3. THE SHADOW DOM INJECTOR (Branding Removal)
+                    const checkWidget = setInterval(() => {
+                        const widgetRoot = document.querySelector("#voiceflow-chat");
+                        
+                        if (widgetRoot && widgetRoot.shadowRoot) {
+                            
+                            const style = document.createElement('style');
+                            style.innerHTML = `
+                                /* 1. Hide Header Logo */
+                                .vfrc-header--image {
+                                    display: none !important;
+                                }
+
+                                /* 2. Hide Avatars */
+                                .vfrc-avatar, .vfrc-message--image {
+                                    display: none !important;
+                                }
+
+                                /* 3. THE FIX: Hide ONLY the "Powered By" text */
+                                .vfrc-footer--watermark {
+                                    display: none !important;
+                                    opacity: 0 !important;
+                                    pointer-events: none !important;
+                                }
+                                
+                                /* Backup: Hide any links in the footer just in case */
+                                .vfrc-footer a {
+                                    display: none !important;
+                                }
+
+                                /* 4. Cleanup Spacing */
+                                .vfrc-message { margin-left: 0 !important; }
+                            `;
+
+                            widgetRoot.shadowRoot.appendChild(style);
+                            clearInterval(checkWidget);
+                            console.log("Branding Removed, Input Saved.");
+                        }
+                    }, 500);
+                });
+            };
+            v.src = "https://cdn.voiceflow.com/widget/bundle.mjs";
+            v.type = "text/javascript";
+            s.parentNode.insertBefore(v, s);
+        })(document, 'script');
+    </script>
+</body>
+</html>
